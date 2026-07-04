@@ -1,0 +1,16 @@
+tensorflow==2.13.0
+streamlit
+opencv-python-headless
+numpy
+pandas
+matplotlib
+seaborn
+Pillow
+scikit-learn
+langchain
+langchain-google-genai
+google-generativeai
+reportlab
+plotly
+bcrypt
+python-dotenv
