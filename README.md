@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🧠 NeuroScan AI
 **AI-Powered Brain Tumor Detection & Clinical Support System**
 
@@ -89,3 +90,7 @@ streamlit run app.py
 ## ⚠️ Disclaimer
 This system is for educational and research purposes only.
 It is a decision-support tool — NOT a replacement for professional medical diagnosis.
+=======
+# NeuroScan
+fyp
+>>>>>>> ac2e6ae400fcbf57dbe4da44257232211a282336
