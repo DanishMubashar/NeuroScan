@@ -1,5 +1,6 @@
 """
 NeuroScan AI - Authentication Module
+Mandatory Login / Signup — collects Name, Gender, Age, Address
 """
 
 import bcrypt
@@ -21,15 +22,18 @@ def is_logged_in() -> bool:
 
 def get_current_doctor():
     return {
-        "id":        st.session_state.get("doctor_id"),
-        "name":      st.session_state.get("doctor_name"),
-        "email":     st.session_state.get("doctor_email"),
-        "specialty": st.session_state.get("doctor_specialty"),
+        "id":      st.session_state.get("doctor_id"),
+        "name":    st.session_state.get("doctor_name"),
+        "email":   st.session_state.get("doctor_email"),
+        "gender":  st.session_state.get("doctor_gender"),
+        "age":     st.session_state.get("doctor_age"),
+        "address": st.session_state.get("doctor_address"),
     }
 
 
 def logout():
-    for key in ["doctor_id", "doctor_name", "doctor_email", "doctor_specialty"]:
+    for key in ["doctor_id", "doctor_name", "doctor_email",
+                "doctor_gender", "doctor_age", "doctor_address"]:
         st.session_state.pop(key, None)
     st.rerun()
 
@@ -48,68 +52,82 @@ def render_login_page():
 
     st.markdown("<div class='auth-title'>🧠 NeuroScan AI</div>", unsafe_allow_html=True)
     st.markdown(
-        "<div class='auth-sub'>AI-Powered Brain Tumor Detection & Clinical Support System</div>",
+        "<div class='auth-sub'>Please login or create an account to continue</div>",
         unsafe_allow_html=True
     )
 
     col_l, col_c, col_r = st.columns([1, 2, 1])
     with col_c:
-        tab_login, tab_signup = st.tabs(["🔐  Login", "📝  Register"])
+        tab_login, tab_signup = st.tabs(["🔐  Login", "📝  Sign Up"])
 
+        # ── LOGIN ────────────────────────────────────────────────
         with tab_login:
-            st.markdown("### Welcome Back, Doctor")
+            st.markdown("### Welcome Back")
             email    = st.text_input("Email Address", key="l_email",
-                                     placeholder="doctor@hospital.com")
+                                     placeholder="you@example.com")
             password = st.text_input("Password", type="password",
                                      key="l_pass", placeholder="••••••••")
 
-            if st.button("Login →", use_container_width=True, type="primary"):
+            if st.button("Login →", use_container_width=True, type="primary", key="l_btn"):
                 if not email or not password:
                     st.error("Please fill all fields.")
                 else:
                     doctor = get_doctor_by_email(email)
                     if doctor and verify_password(password, doctor["password"]):
-                        st.session_state["doctor_id"]        = doctor["id"]
-                        st.session_state["doctor_name"]      = doctor["full_name"]
-                        st.session_state["doctor_email"]     = doctor["email"]
-                        st.session_state["doctor_specialty"] = doctor["specialty"]
+                        st.session_state["doctor_id"]      = doctor["id"]
+                        st.session_state["doctor_name"]    = doctor["full_name"]
+                        st.session_state["doctor_email"]   = doctor["email"]
+                        st.session_state["doctor_gender"]  = doctor["gender"]
+                        st.session_state["doctor_age"]     = doctor["age"]
+                        st.session_state["doctor_address"] = doctor["address"]
                         st.rerun()
                     else:
                         st.error("Invalid email or password.")
 
+        # ── SIGN UP ──────────────────────────────────────────────
         with tab_signup:
             st.markdown("### Create Your Account")
+
+            full_name = st.text_input("Full Name", key="r_name",
+                                      placeholder="John Smith")
+
             c1, c2 = st.columns(2)
             with c1:
-                full_name = st.text_input("Full Name", key="r_name",
-                                          placeholder="Dr. John Smith")
+                gender = st.selectbox("Gender", ["Male", "Female", "Other"], key="r_gender")
             with c2:
-                specialty = st.selectbox("Specialty", [
-                    "Neurologist", "Neurosurgeon", "Radiologist",
-                    "Oncologist", "General Physician", "Researcher"
-                ], key="r_spec")
+                age = st.number_input("Age", min_value=1, max_value=120,
+                                      step=1, key="r_age")
+
+            address = st.text_area("Address", key="r_address",
+                                   placeholder="House #, Street, City")
 
             r_email = st.text_input("Email Address", key="r_email",
-                                    placeholder="doctor@hospital.com")
-            phone   = st.text_input("Phone Number", key="r_phone",
-                                    placeholder="+92-XXX-XXXXXXX")
-            c3, c4  = st.columns(2)
+                                    placeholder="you@example.com")
+
+            c3, c4 = st.columns(2)
             with c3:
-                r_pass  = st.text_input("Password", type="password", key="r_pass1")
+                r_pass = st.text_input("Password", type="password", key="r_pass1")
             with c4:
                 r_pass2 = st.text_input("Confirm Password", type="password", key="r_pass2")
 
-            if st.button("Create Account →", use_container_width=True, type="primary"):
-                if not all([full_name, r_email, r_pass, r_pass2]):
+            if st.button("Create Account →", use_container_width=True,
+                         type="primary", key="r_btn"):
+                if not all([full_name, gender, age, address, r_email, r_pass, r_pass2]):
                     st.error("Please fill all required fields.")
                 elif r_pass != r_pass2:
                     st.error("Passwords do not match.")
                 elif len(r_pass) < 6:
                     st.error("Password must be at least 6 characters.")
                 else:
-                    ok, msg = add_doctor(full_name, r_email,
-                                         hash_password(r_pass), specialty, phone)
+                    ok, msg = add_doctor(
+                        full_name=full_name,
+                        email=r_email,
+                        hashed_password=hash_password(r_pass),
+                        gender=gender,
+                        age=int(age),
+                        address=address,
+                    )
                     if ok:
-                        st.success("✅ Account created! Please login.")
+                        st.success("✅ Account created! Please login from the Login tab.")
                     else:
                         st.error(msg)
