@@ -9,15 +9,18 @@ from database.db_setup import get_connection
 
 # ── DOCTORS ────────────────────────────────────────────────────
 
-def add_doctor(full_name, email, hashed_password, specialty, phone):
+def add_doctor(full_name, email, hashed_password, gender, age, address,
+                specialty="Neurologist", phone=None):
     conn = get_connection()
     try:
         conn.execute(
-            "INSERT INTO doctors (full_name, email, password, specialty, phone) VALUES (?,?,?,?,?)",
-            (full_name, email, hashed_password, specialty, phone)
+            """INSERT INTO doctors
+               (full_name, email, password, gender, age, address, specialty, phone)
+               VALUES (?,?,?,?,?,?,?,?)""",
+            (full_name, email, hashed_password, gender, age, address, specialty, phone)
         )
         conn.commit()
-        return True, "Doctor registered successfully!"
+        return True, "Account registered successfully!"
     except sqlite3.IntegrityError:
         return False, "Email already registered!"
     finally:
