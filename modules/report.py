@@ -63,24 +63,13 @@ def generate_pdf_report(patient: dict, doctor: dict, scan_result: dict,
     ))
     story.append(Spacer(1, 0.4*cm))
 
-    # Doctor info
-    story.append(Paragraph("Physician Information", h2_s))
-    t = Table([
-        ["Name",      f"Dr. {doctor.get('name', 'N/A')}"],
-        ["Specialty", doctor.get('specialty', 'N/A')],
-        ["Email",     doctor.get('email', 'N/A')],
-    ], colWidths=[4*cm, 12*cm])
-    t.setStyle(tbl_style)
-    story.append(t)
-
-    # Patient info
-    story.append(Spacer(1, 0.3*cm))
-    story.append(Paragraph("Patient Information", h2_s))
+    # Account holder / patient info (self-service: the logged-in user is the patient)
+    story.append(Paragraph("Patient / Account Information", h2_s))
     t2 = Table([
         ["Full Name",       patient.get("full_name", "N/A")],
         ["Age",             str(patient.get("age", "N/A"))],
         ["Gender",          patient.get("gender", "N/A")],
-        ["Phone",           patient.get("phone", "N/A") or "N/A"],
+        ["Address",         patient.get("address", "N/A") or "N/A"],
         ["Email",           patient.get("email", "N/A") or "N/A"],
         ["Medical History", patient.get("medical_history", "None") or "None"],
     ], colWidths=[4*cm, 12*cm])
