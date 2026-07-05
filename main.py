@@ -25,8 +25,9 @@ from modules.tumor_analysis import analyze_tumor, generate_gradcam, render_analy
 from modules.neurobot       import render_neurobot
 from database.db_operations import add_scan, update_scan_report
 from modules.report         import generate_pdf_report, render_report_download
+from modules.auth           import is_logged_in, get_current_doctor, render_login_page, logout
 
-DOCTOR = {"id": 1, "name": "Guest", "specialty": "Radiology"}
+DOCTOR = {}  # populated after login inside main()
 
 # ═════════════════════════════════════════════════════════════════════════════
 #  GLOBAL CSS
@@ -1108,7 +1109,14 @@ def render_detection():
             st.markdown("---")
             st.markdown("## 📄 Medical Report")
             os.makedirs("reports", exist_ok=True)
-            patient_ph = {"full_name":"Anonymous Patient","age":"N/A","gender":"N/A","medical_history":notes or "No history provided."}
+            patient_ph = {
+                "full_name": DOCTOR.get("name", "N/A"),
+                "age": DOCTOR.get("age", "N/A"),
+                "gender": DOCTOR.get("gender", "N/A"),
+                "address": DOCTOR.get("address", "N/A"),
+                "email": DOCTOR.get("email", "N/A"),
+                "medical_history": notes or "No history provided.",
+            }
             try:
                 pdf = generate_pdf_report(
                     patient=patient_ph, doctor=DOCTOR,
@@ -1117,7 +1125,7 @@ def render_detection():
                 )
                 if scan_id:
                     update_scan_report(scan_id, f"reports/scan_{scan_id}.pdf")
-                render_report_download(pdf, "Brain_Scan", scan_id)
+                render_report_download(pdf, DOCTOR.get("name", "Brain_Scan"), scan_id)
             except Exception as e:
                 st.warning(f"PDF generation skipped: {e}")
             st.success(f"✅ Scan complete and saved! (ID: {scan_id})")
@@ -1297,7 +1305,28 @@ def render_neurobot_page():
 #  MAIN
 # ═════════════════════════════════════════════════════════════════════════════
 def main():
+    # ── Mandatory login gate ──────────────────────────────────────
+    if not is_logged_in():
+        render_login_page()
+        return
+
+    global DOCTOR
+    DOCTOR = get_current_doctor()
+
     _navbar()
+
+    # ── User info bar + logout ────────────────────────────────────
+    col_u1, col_u2 = st.columns([5, 1])
+    with col_u1:
+        st.markdown(
+            f"<div style='padding:0.4rem 0;color:var(--soft, #888);font-size:0.9rem;'>"
+            f"👋 Welcome, <b>{DOCTOR['name']}</b> &nbsp;|&nbsp; {DOCTOR.get('gender','')}, "
+            f"Age {DOCTOR.get('age','')} </div>",
+            unsafe_allow_html=True
+        )
+    with col_u2:
+        if st.button("🚪 Logout", use_container_width=True, key="logout_btn"):
+            logout()
 
     TAB_DEF = [
         ("home",      "🏠  Home"),
