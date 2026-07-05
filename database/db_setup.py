@@ -26,9 +26,22 @@ def initialize_database():
             password    TEXT    NOT NULL,
             specialty   TEXT    DEFAULT 'Neurologist',
             phone       TEXT,
+            gender      TEXT,
+            age         INTEGER,
+            address     TEXT,
             created_at  TEXT    DEFAULT (datetime('now'))
         )
     """)
+
+    # ── Migration: add new columns to an already-existing doctors table ──
+    existing_cols = [row[1] for row in c.execute("PRAGMA table_info(doctors)").fetchall()]
+    for col_name, col_def in [
+        ("gender",  "TEXT"),
+        ("age",     "INTEGER"),
+        ("address", "TEXT"),
+    ]:
+        if col_name not in existing_cols:
+            c.execute(f"ALTER TABLE doctors ADD COLUMN {col_name} {col_def}")
 
     c.execute("""
         CREATE TABLE IF NOT EXISTS patients (
